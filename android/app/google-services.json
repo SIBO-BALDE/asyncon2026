@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "445891986366",
+    "project_id": "asynconf2026-42509",
+    "storage_bucket": "asynconf2026-42509.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:445891986366:android:2d95356b18b499c1e9efef",
+        "android_client_info": {
+          "package_name": "com.example.my_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAK9wUMWx-oVG3jVRaBA940LARaGN5jOJ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
