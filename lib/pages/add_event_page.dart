@@ -17,6 +17,7 @@ class _AddEventPageState extends State<AddEventPage> {
   final confNameSpeakerController = TextEditingController();
   String selectedType = 'Takk';
   DateTime selectedConfDate = DateTime.now();
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -26,6 +27,10 @@ class _AddEventPageState extends State<AddEventPage> {
   }
 
   Future<void> saveEvent() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final confName = confNameController.text;
       final speakerName = confNameSpeakerController.text;
@@ -45,8 +50,15 @@ class _AddEventPageState extends State<AddEventPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Événement ajouté avec succès !"),
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text("Événement ajouté avec succès !"),
+                ],
+              ),
               backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
             )
         );
 
@@ -62,110 +74,229 @@ class _AddEventPageState extends State<AddEventPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Erreur : $e"),
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text("Erreur : $e")),
+                ],
+              ),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
             )
         );
       }
       print("Erreur lors de l'ajout : $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: Form(
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Form(
           key: _formkey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: "Nom conference",
-                    hintText: "Entrer le nom",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value){
-                    if(value == null || value.isEmpty){
-                      return "Champ vide";
-                    }
-                    return null;
-                  },
-                  controller: confNameController,
+              // En-tête
+              const Text(
+                "Nouvelle Conférence",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: "Nom du speaker",
-                    hintText: "Entrer le nom du speaker",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value){
-                    if(value == null || value.isEmpty){
-                      return "Champ vide";
-                    }
-                    return null;
-                  },
-                  controller: confNameSpeakerController,
+              const SizedBox(height: 8),
+              const Text(
+                "Remplissez les informations ci-dessous",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                child: DropdownButtonFormField(
-                    items: const [
-                      DropdownMenuItem(value:'Takk', child: Text("Talk show")),
-                      DropdownMenuItem(value:'Demo', child: Text("Demo code")),
-                      DropdownMenuItem(value:'Partener', child: Text("Partener")),
-                    ],
-                    decoration: const InputDecoration(
-                        border: OutlineInputBorder()
-                    ),
-                    value: selectedType,
-                    onChanged: (value){
-                      setState(() {
-                        selectedType = value!;
-                      });
-                    }
-                ),
-              ),
+              const SizedBox(height: 30),
 
-              Container(
-                margin: const EdgeInsets.only(bottom: 15),
-                child: DateTimeFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Entrer la date',
-                    border: OutlineInputBorder(),
+              // Nom de la conférence
+              TextFormField(
+                controller: confNameController,
+                decoration: InputDecoration(
+                  labelText: "Nom de la conférence",
+                  hintText: "Ex: Introduction à Flutter",
+                  prefixIcon: const Icon(Icons.event, color: Colors.blue),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  firstDate: DateTime.now().add(const Duration(days: 10)),
-                  lastDate: DateTime.now().add(const Duration(days: 40)),
-                  initialPickerDateTime: DateTime.now().add(const Duration(days: 20)),
-                  onChanged: (DateTime? value) {
-                    selectedConfDate = value!;
-                  },
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Veuillez entrer le nom de la conférence";
+                  }
+                  return null;
+                },
               ),
+              const SizedBox(height: 20),
+
+              // Nom du speaker
+              TextFormField(
+                controller: confNameSpeakerController,
+                decoration: InputDecoration(
+                  labelText: "Nom du speaker",
+                  hintText: "Ex: Jean Dupont",
+                  prefixIcon: const Icon(Icons.person, color: Colors.blue),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Veuillez entrer le nom du speaker";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Type de conférence
+              DropdownButtonFormField<String>(
+                value: selectedType,
+                decoration: InputDecoration(
+                  labelText: "Type de conférence",
+                  prefixIcon: const Icon(Icons.category, color: Colors.blue),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Takk', child: Text("Talk show")),
+                  DropdownMenuItem(value: 'Demo', child: Text("Demo code")),
+                  DropdownMenuItem(value: 'Partener', child: Text("Partener")),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    selectedType = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Date et heure
+              DateTimeFormField(
+                decoration: InputDecoration(
+                  labelText: 'Date et heure',
+                  hintText: 'Sélectionnez une date',
+                  prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                firstDate: DateTime.now().add(const Duration(days: 10)),
+                lastDate: DateTime.now().add(const Duration(days: 40)),
+                initialPickerDateTime: DateTime.now().add(const Duration(days: 20)),
+                onChanged: (DateTime? value) {
+                  if (value != null) {
+                    selectedConfDate = value;
+                  }
+                },
+              ),
+              const SizedBox(height: 30),
+
+              // Bouton de soumission
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 55,
                 child: ElevatedButton(
-                    onPressed: () async {
-                      if(_formkey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Envoi en cours ..."))
-                        );
-
-                        await saveEvent();
-                      }
-                    },
-                    child: const Text("Envoyer")
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                    if (_formkey.currentState!.validate()) {
+                      await saveEvent();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 2,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  child: isLoading
+                      ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Text("Envoi en cours...", style: TextStyle(fontSize: 16)),
+                    ],
+                  )
+                      : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.send),
+                      SizedBox(width: 10),
+                      Text("Ajouter la conférence", style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
                 ),
-              )
+              ),
             ],
-          )
+          ),
+        ),
       ),
     );
   }
